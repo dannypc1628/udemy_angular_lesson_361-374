@@ -4,7 +4,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import * as AuthActions from "./auth.actions";
 import { Actions, Effect, ofType } from "@ngrx/effects";
-import { AuthResponseData } from "../auth.service";
+import { AuthResponseData, AuthService } from "../auth.service";
 import { catchError, map, switchMap, tap } from "rxjs/operators";
 import { of } from "rxjs";
 
@@ -60,6 +60,9 @@ export class AuthEffects {
           }
         )
         .pipe(
+          tap((resData) => {
+            this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+          }),
           map((resData) => {
             return handleAuthentication(
               +resData.expiresIn,
@@ -97,6 +100,9 @@ export class AuthEffects {
           }
         )
         .pipe(
+          tap((resData) => {
+            this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+          }),
           map((resData) => {
             return handleAuthentication(
               +resData.expiresIn,
@@ -134,6 +140,10 @@ export class AuthEffects {
       );
 
       if (loadedUser.token) {
+        const expirationDuration =
+          new Date(userData._tokenExpirationDate).getTime() -
+          new Date().getTime();
+        this.authService.setLogoutTimer(expirationDuration)
         return new AuthActions.AuthenticateSuccess({
           email: loadedUser.email,
           userId: loadedUser.id,
@@ -154,6 +164,7 @@ export class AuthEffects {
   authLogout = this.actions$.pipe(
     ofType(AuthActions.LOGOUT),  //這個是設定要觀察的狀態
     tap(() => {
+      this.authService.clearLogoutTimer();
       localStorage.removeItem('userData');
     })
   )
@@ -161,6 +172,7 @@ export class AuthEffects {
   constructor(
     private actions$: Actions,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) { }
 }
