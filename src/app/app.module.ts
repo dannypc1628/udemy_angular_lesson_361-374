@@ -16,7 +16,8 @@ import { AuthInterceptorService } from "./auth/auth-interceptor.service";
 import { StoreModule } from "@ngrx/store";
 import { EffectsModule } from "@ngrx/effects";
 import * as fromApp from "./store/app.reducer";
-
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from "src/environments/environment";
 @NgModule({
   declarations: [AppComponent, HeaderComponent, AuthComponent],
   imports: [
@@ -28,6 +29,7 @@ import * as fromApp from "./store/app.reducer";
     RecipesModule,
     StoreModule.forRoot(fromApp.appReducer),
     EffectsModule.forRoot([AuthEffects]),
+    StoreDevtoolsModule.instrument({ logOnly: environment.production }), // true during production ; false during development
     ShoppingListModule,
     SharedModule,
   ],
@@ -41,4 +43,4 @@ import * as fromApp from "./store/app.reducer";
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }
