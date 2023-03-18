@@ -1,3 +1,4 @@
+import { switchMap } from 'rxjs/operators';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -23,22 +24,24 @@ export class RecipeDetailComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.route.params.subscribe((params: Params) => {
-      this.id = +params['id'];
-      // this.recipe = this.recipeService.getRecipe(this.id);
-      this.store
-        .select('recipes')
-        .pipe(
-          map((recipeState) => {
-            return recipeState.recipes.find((recipe, index) => {
-              return index === this.id;
-            });
-          })
-        )
-        .subscribe((recipe) => {
-          this.recipe = recipe;
-        });
-    });
+    this.route.params
+      .pipe(
+        map((params) => {
+          return +params['id'];
+        }),
+        switchMap((id) => {
+          this.id = id;
+          return this.store.select('recipes');
+        }),
+        map((recipeState) => {
+          return recipeState.recipes.find((recipe, index) => {
+            return index === this.id;
+          });
+        })
+      )
+      .subscribe((recipe) => {
+        this.recipe = recipe;
+      });
   }
 
   onAddToShoppingList() {
